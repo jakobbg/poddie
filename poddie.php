@@ -35,7 +35,7 @@ foreach($poddie_config as $podcast_feed) {
         $episode_title_filename = str_replace('..', '.', str_replace("  ", " ", date('Y-m-d', strtotime((string) $item->pubDate)) . " - " .  preg_replace("/[^a-zæøåA-ZÆØÅ0-9.\-]/", " ", (string) $item->title) . ".$episode_title_filename_extension"));
         if($url != '' && strpos($poddie_already_fetched, $url) === false) {
             echo "Fetching '$url' into '" . PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename'\n";
-            exec("fetch -q -o '" . PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename' '$url'");
+            download($url, PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename");
             $id3tag = substr($episode_title_filename, 0, strrpos($episode_title_filename, '.'));
             exec(PODDIE_ID3TAG_BIN . " --song='$id3tag' '" . PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename'");
             log_fetched($url);
@@ -56,7 +56,7 @@ if ($downloaded_files_count > 0) echo "Downloaded $downloaded_files_count files 
 
 
 function poddie_setup() {
-    define("PODDIE_PODCAST_STORAGE", "{$_SERVER['HOME']}/storage/Audio/Podcasts");
+    define("PODDIE_PODCAST_STORAGE", "{$_SERVER['HOME']}/Music/Podcasts");
     define("PODDIE_CONFIG_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.config");
     define("PODDIE_FEEDS_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.feeds");
     define("PODDIE_FETCHED_LOGFILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.fetched");
@@ -99,6 +99,25 @@ function is_podcast_feed_alive($url) {
 
 function get_poddie_config($key) {
     return parse_ini_file(PODDIE_CONFIG_FILE)[$key];
+}
+
+function download($file_source, $file_target) {
+    $rh = fopen($file_source, 'rb');
+    $wh = fopen($file_target, 'wb');
+    if ($rh===false || $wh===false) {
+        // error reading or opening file
+        return false;
+    }
+    while (!feof($rh)) {
+    if (fwrite($wh, fread($rh, 1024)) === FALSE) {
+        // 'Download error: Cannot write to file ('.$file_target.')';
+        return true;
+        }
+    }
+    fclose($rh);
+    fclose($wh);
+    // No error
+    return true;
 }
 
 ?>
