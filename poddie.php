@@ -16,7 +16,13 @@ foreach($poddie_config as $podcast_feed) {
     list($podcast_title, $podcast_url, $episodes_to_keep) = explode(';', trim($podcast_feed));
 
     if(!is_podcast_feed_alive($podcast_url)) {
-        echo "$podcast_title ($podcast_url) is not alive. Skipping.\n";
+        echo "$podcast_title ($podcast_url) does not exist. Skipping.\n";
+        break;
+    }
+
+    $podcast_simplexml = simplexml_load_string(file_get_contents(trim($podcast_url)));
+    if(!podcast_simplexml) {
+        echo "$podcast_title ($podcast_url) is not providing valid XML. Skipping.\n";
         break;
     }
 
@@ -25,7 +31,7 @@ foreach($poddie_config as $podcast_feed) {
         exec("mkdir -p '$podcast_storage/$podcast_title'");
     }
 
-    foreach(simplexml_load_string(file_get_contents(trim($podcast_url)))->channel->item as $item) {
+    foreach($podcast_simplexml->channel->item as $item) {
         if(++$episodes_kept >= $episodes_to_keep) break;
         $url = (string) $item->enclosure['url'];
         $episode_title_filename_extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
