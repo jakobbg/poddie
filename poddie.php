@@ -14,14 +14,21 @@ $poddie_config = file($poddie_config_file);
 foreach($poddie_config as $podcast_feed) {
     $episodes_kept = 0;
     list($podcast_title, $podcast_url, $episodes_to_keep) = explode(';', trim($podcast_feed));
+
+    if(!is_podcast_feed_alive($podcast_url)) {
+        echo "$podcast_title ($podcast_url) is not alive. Skipping.\n";
+        break;
+    }
+
     if(!file_exists("$podcast_storage/$podcast_title")) {
         echo "New podcast subscription detected: $podcast_title.\n";
         exec("mkdir -p '$podcast_storage/$podcast_title'");
     }
+
     foreach(simplexml_load_string(file_get_contents(trim($podcast_url)))->channel->item as $item) {
         if(++$episodes_kept >= $episodes_to_keep) break;
         $url = (string) $item->enclosure['url'];
-	$episode_title_filename_extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+        $episode_title_filename_extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
         $episode_title_filename = str_replace('..', '.', str_replace("  ", " ", date('Y-m-d', strtotime((string) $item->pubDate)) . " - " .  preg_replace("/[^a-zæøåA-ZÆØÅ0-9.\-]/", " ", (string) $item->title) . ".$episode_title_filename_extension"));
         if($url != '' && strpos($poddie_already_fetched, $url) === false) {
             echo "Fetching '$url' into '$podcast_storage/$podcast_title/$episode_title_filename'\n";
@@ -65,6 +72,15 @@ function log_fetched($podcast_url) {
     $logfile = fopen($poddie_log_fetched, 'a');
     fwrite($logfile, "$podcast_url\n");
     fclose($logfile);
+}
+
+function is_podcast_feed_alive($url) {
+    $handle = curl_init($url);
+    curl_setopt($handle,  CURLOPT_RETURNTRANSFER, TRUE);
+    $response = curl_exec($handle);
+    $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+    curl_close($handle);
+    return ($httpCode == 200);
 }
 
 ?>
