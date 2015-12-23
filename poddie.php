@@ -2,9 +2,9 @@
 <?php
 
 $podcast_storage = "{$_SERVER['HOME']}/storage/Audio/Podcasts";
-$poddie_config_file = dirname($_SERVER['SCRIPT_FILENAME']) . "/.poddie.config";
-$poddie_feeds_file = "{$_SERVER['HOME']}/.poddie.feeds";
-$poddie_fetched_logfile = "{$_SERVER['HOME']}/.poddie.fetched";
+$poddie_config_file = dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.config";
+$poddie_feeds_file = dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.feeds";
+$poddie_fetched_logfile = dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.fetched";
 $poddie_id3tag_bin = "/usr/local/bin/id3tag";
 
 $poddie_already_fetched = file_exists($poddie_fetched_logfile) ? file_get_contents($poddie_fetched_logfile) : "";
