@@ -1,18 +1,12 @@
 #!/usr/local/bin/php
 <?php
 
-$podcast_storage = "{$_SERVER['HOME']}/storage/Audio/Podcasts";
-$poddie_config_file = dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.config";
-$poddie_feeds_file = dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.feeds";
-$poddie_fetched_logfile = dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.fetched";
-$poddie_id3tag_bin = "/usr/local/bin/id3tag";
+poddie_setup();
 
-$poddie_already_fetched = file_exists($poddie_fetched_logfile) ? file_get_contents($poddie_fetched_logfile) : "";
+$poddie_already_fetched = file_exists(PODDIE_FETCHED_LOGFILE) ? file_get_contents(PODDIE_FETCHED_LOGFILE) : "";
 $downloaded_files_count = 0;
 
-$poddie_config = file($poddie_feeds_file);
-
-poddie_setup();
+$poddie_config = file(PODDIE_FEEDS_FILE);
 
 foreach($poddie_config as $podcast_feed) {
     $episodes_kept = 0;
@@ -29,9 +23,9 @@ foreach($poddie_config as $podcast_feed) {
         break;
     }
 
-    if(!file_exists("$podcast_storage/$podcast_title")) {
+    if(!file_exists(PODDIE_PODCAST_STORAGE . "/$podcast_title")) {
         echo "New podcast subscription detected: $podcast_title.\n";
-        exec("mkdir -p '$podcast_storage/$podcast_title'");
+        exec("mkdir -p '" . PODDIE_PODCAST_STORAGE . "/$podcast_title'");
     }
 
     foreach($podcast_simplexml->channel->item as $item) {
@@ -40,18 +34,18 @@ foreach($poddie_config as $podcast_feed) {
         $episode_title_filename_extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
         $episode_title_filename = str_replace('..', '.', str_replace("  ", " ", date('Y-m-d', strtotime((string) $item->pubDate)) . " - " .  preg_replace("/[^a-zæøåA-ZÆØÅ0-9.\-]/", " ", (string) $item->title) . ".$episode_title_filename_extension"));
         if($url != '' && strpos($poddie_already_fetched, $url) === false) {
-            echo "Fetching '$url' into '$podcast_storage/$podcast_title/$episode_title_filename'\n";
-            exec("fetch -q -o '$podcast_storage/$podcast_title/$episode_title_filename' '$url'");
+            echo "Fetching '$url' into '" . PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename'\n";
+            exec("fetch -q -o '" . PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename' '$url'");
             $id3tag = substr($episode_title_filename, 0, strrpos($episode_title_filename, '.'));
-            exec("$poddie_id3tag_bin --song='$id3tag' '$podcast_storage/$podcast_title/$episode_title_filename'");
+            exec(PODDIE_ID3TAG_BIN . " --song='$id3tag' '" . PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename'");
             log_fetched($url);
             $downloaded_files_count++;
         }
     }
     
-    $downloaded_files = scan_dir("$podcast_storage/$podcast_title");
+    $downloaded_files = scan_dir(PODDIE_PODCAST_STORAGE . "/$podcast_title");
     for($index = intval($episodes_to_keep); $index <= count($downloaded_files) - 1; $index++) {
-        $file_to_remove = "$podcast_storage/$podcast_title/{$downloaded_files[$index]}";
+        $file_to_remove = PODDIE_PODCAST_STORAGE . "/$podcast_title/{$downloaded_files[$index]}";
         echo "Removing $index from $podcast_title ($file_to_remove)\n";
         unlink($file_to_remove);
     }
@@ -62,7 +56,13 @@ if ($downloaded_files_count > 0) echo "Downloaded $downloaded_files_count files 
 
 
 function poddie_setup() {
+    define("PODDIE_PODCAST_STORAGE", "{$_SERVER['HOME']}/storage/Audio/Podcasts");
+    define("PODDIE_CONFIG_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.config");
+    define("PODDIE_FEEDS_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.feeds");
+    define("PODDIE_FETCHED_LOGFILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.fetched");
+    define("PODDIE_ID3TAG_BIN",  "/usr/local/bin/id3tag");
     define("PODDIE_CONFIG_TIMEZONE", "timezone");
+
     date_default_timezone_set(get_poddie_config(PODDIE_CONFIG_TIMEZONE));
 
 }
@@ -83,8 +83,7 @@ function scan_dir($dir) {
 }
 
 function log_fetched($podcast_url) {
-    global $poddie_fetched_logfile;
-    $logfile = fopen($poddie_fetched_logfile, 'a');
+    $logfile = fopen(PODDIE_FETCHED_LOGFILE, 'a');
     fwrite($logfile, "$podcast_url\n");
     fclose($logfile);
 }
@@ -99,7 +98,7 @@ function is_podcast_feed_alive($url) {
 }
 
 function get_poddie_config($key) {
-    return parse_ini_file($GLOBALS['poddie_config_file'])[$key];
+    return parse_ini_file(PODDIE_CONFIG_FILE)[$key];
 }
 
 ?>
