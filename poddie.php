@@ -2,14 +2,17 @@
 <?php
 
 $podcast_storage = "{$_SERVER['HOME']}/storage/Audio/Podcasts";
-$poddie_config_file = "{$_SERVER['HOME']}/.poddie.feeds";
-$poddie_log_fetched = "{$_SERVER['HOME']}/.poddie.fetched";
+$poddie_config_file = dirname($_SERVER['SCRIPT_FILENAME']) . "/.poddie.config";
+$poddie_feeds_file = "{$_SERVER['HOME']}/.poddie.feeds";
+$poddie_fetched_logfile = "{$_SERVER['HOME']}/.poddie.fetched";
 $poddie_id3tag_bin = "/usr/local/bin/id3tag";
 
-$poddie_already_fetched = file_exists($poddie_log_fetched) ? file_get_contents($poddie_log_fetched) : "";
+$poddie_already_fetched = file_exists($poddie_fetched_logfile) ? file_get_contents($poddie_fetched_logfile) : "";
 $downloaded_files_count = 0;
 
-$poddie_config = file($poddie_config_file);
+$poddie_config = file($poddie_feeds_file);
+
+poddie_setup();
 
 foreach($poddie_config as $podcast_feed) {
     $episodes_kept = 0;
@@ -58,6 +61,12 @@ $number_of_podcasts = count($poddie_config);
 if ($downloaded_files_count > 0) echo "Downloaded $downloaded_files_count files from $number_of_podcasts podcast feeds.\n";
 
 
+function poddie_setup() {
+    define("PODDIE_CONFIG_TIMEZONE", "timezone");
+    date_default_timezone_set(get_poddie_config(PODDIE_CONFIG_TIMEZONE));
+
+}
+
 function scan_dir($dir) {
     $ignored = array('.', '..', '.svn', '.htaccess');
 
@@ -74,8 +83,8 @@ function scan_dir($dir) {
 }
 
 function log_fetched($podcast_url) {
-    global $poddie_log_fetched;
-    $logfile = fopen($poddie_log_fetched, 'a');
+    global $poddie_fetched_logfile;
+    $logfile = fopen($poddie_fetched_logfile, 'a');
     fwrite($logfile, "$podcast_url\n");
     fclose($logfile);
 }
@@ -87,6 +96,10 @@ function is_podcast_feed_alive($url) {
     $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
     curl_close($handle);
     return ($httpCode == 200);
+}
+
+function get_poddie_config($key) {
+    return parse_ini_file($GLOBALS['poddie_config_file'])[$key];
 }
 
 ?>
