@@ -18,7 +18,7 @@ foreach($poddie_config as $podcast_feed) {
     }
 
     $podcast_simplexml = simplexml_load_string(file_get_contents(trim($podcast_url)));
-    if(!podcast_simplexml) {
+    if(!$podcast_simplexml) {
         echo "$podcast_title ($podcast_url) is not providing valid XML. Skipping.\n";
         break;
     }
@@ -32,7 +32,7 @@ foreach($poddie_config as $podcast_feed) {
         if(++$episodes_kept >= $episodes_to_keep) break;
         $url = (string) $item->enclosure['url'];
         $episode_title_filename_extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
-        $episode_title_filename = str_replace('..', '.', str_replace("  ", " ", date('Y-m-d', strtotime((string) $item->pubDate)) . " - " . trim(preg_replace("/[^a-zæøåA-ZÆØÅ0-9.\-]/", " ", (string) $item->title)) . ".$episode_title_filename_extension"));
+        $episode_title_filename = str_replace('..', '.', str_replace("  ", " ", date('Y-m-d', strtotime((string) $item->pubDate)) . " - " . trim(preg_replace("/[^a-zæøåA-ZÆØÅ0-9.\-]/", " ", remove_timestamp((string) $item->title))) . ".$episode_title_filename_extension"));
         if($url != '' && strpos($poddie_already_fetched, $url) === false) {
             echo "Fetching '$url' into '" . PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename'\n";
             download($url, PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename");
@@ -56,7 +56,7 @@ if ($downloaded_files_count > 0) echo "Downloaded $downloaded_files_count files 
 
 
 function poddie_setup() {
-    define("PODDIE_PODCAST_STORAGE", "{$_SERVER['HOME']}/Music/Podcasts");
+    define("PODDIE_PODCAST_STORAGE", "{$_SERVER['HOME']}/storage/Audio/Podcasts");
     define("PODDIE_CONFIG_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.config");
     define("PODDIE_FEEDS_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.feeds");
     define("PODDIE_FETCHED_LOGFILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.fetched");
@@ -118,6 +118,10 @@ function download($file_source, $file_target) {
     fclose($wh);
     // No error
     return true;
+}
+
+function remove_timestamp($str) {
+    return preg_replace('/(\d{1,2})[[:punct:]](\d{1,2})[[:punct:]](\d{2,4})/', '', $str);
 }
 
 ?>
