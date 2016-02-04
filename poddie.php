@@ -57,14 +57,13 @@ if ($downloaded_files_count > 0) echo "Downloaded $downloaded_files_count files 
 
 
 function poddie_setup() {
-    define("PODDIE_PODCAST_STORAGE", "{$_SERVER['HOME']}/storage/Audio/Podcasts");
     define("PODDIE_CONFIG_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.config");
     define("PODDIE_FEEDS_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.feeds");
     define("PODDIE_FETCHED_LOGFILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.fetched");
-    define("PODDIE_ID3TAG_BIN",  "/usr/local/bin/id3tag");
-    define("PODDIE_CONFIG_TIMEZONE", "timezone");
 
-    date_default_timezone_set(get_poddie_config(PODDIE_CONFIG_TIMEZONE));
+    define("PODDIE_ID3TAG_BIN", get_poddie_config("id3tag");
+    define("PODDIE_PODCAST_STORAGE", get_poddie_config("podcast_storage");
+    date_default_timezone_set(get_poddie_config("timezone"));
 
 }
 
