@@ -61,8 +61,8 @@ function poddie_setup() {
     define("PODDIE_FEEDS_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.feeds");
     define("PODDIE_FETCHED_LOGFILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.fetched");
 
-    define("PODDIE_ID3TAG_BIN", get_poddie_config("id3tag");
-    define("PODDIE_PODCAST_STORAGE", get_poddie_config("podcast_storage");
+    define("PODDIE_ID3TAG_BIN", get_poddie_config("id3tag"));
+    define("PODDIE_PODCAST_STORAGE", get_poddie_config("podcast_storage"));
     date_default_timezone_set(get_poddie_config("timezone"));
 
 }
