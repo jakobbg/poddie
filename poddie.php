@@ -33,7 +33,7 @@ foreach($poddie_config as $podcast_feed) {
         $url = (string) $item->enclosure['url'];
         $episode_title_filename_extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
         $episode_title_filename = date('Y-m-d', strtotime((string) $item->pubDate)) . " - " . sanitize_filename(remove_timestamp((string) $item->title)) . ".$episode_title_filename_extension";
-        if($url != '' && strpos($poddie_already_fetched, $url) === false) {
+        if($url != '' && (!file_exists(PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename")) && strpos($poddie_already_fetched, $url) === false) {
             echo "Fetching '$url' into '" . PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename'\n";
             download($url, PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename");
             $id3tag = substr($episode_title_filename, 0, strrpos($episode_title_filename, '.'));
