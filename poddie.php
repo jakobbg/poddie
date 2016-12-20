@@ -6,7 +6,7 @@ poddie_setup();
 $poddie_already_fetched = file_exists(PODDIE_FETCHED_LOGFILE) ? file_get_contents(PODDIE_FETCHED_LOGFILE) : "";
 $downloaded_files_count = 0;
 
-$poddie_config = implode("\n", array_filter(explode("\n", file(PODDIE_FEEDS_FILE))));
+$poddie_config = preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", file(PODDIE_FEEDS_FILE));
 
 foreach($poddie_config as $podcast_feed) {
     $episodes_kept = 0;
