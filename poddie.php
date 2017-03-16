@@ -14,13 +14,13 @@ foreach($poddie_config as $podcast_feed) {
 
     if(!is_podcast_feed_alive($podcast_url)) {
         echo "$podcast_title ($podcast_url) does not exist. Skipping.\n";
-        break;
+        continue;
     }
 
     $podcast_simplexml = simplexml_load_string(file_get_contents(trim($podcast_url)));
     if(!$podcast_simplexml) {
         echo "$podcast_title ($podcast_url) is not providing valid XML. Skipping.\n";
-        break;
+        continue;
     }
 
     if(!file_exists(PODDIE_PODCAST_STORAGE . "/$podcast_title")) {
