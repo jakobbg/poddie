@@ -8,7 +8,7 @@ pushd () {
 }
 
 popd () {
-    command popd "$BASEDIR" > /dev/null
+    command popd > /dev/null
 }
 
 pushd $BASEDIR
