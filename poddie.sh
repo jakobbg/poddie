@@ -1,14 +1,16 @@
 #!/usr/local/bin/bash
 
+PHP_BINARY=/usr/local/bin/php
+BASEDIR=$(dirname "$0")
+
 pushd () {
-    command pushd "$@" > /dev/null
+    command pushd "$BASEDIR" > /dev/null
 }
 
 popd () {
-    command popd "$@" > /dev/null
+    command popd "$BASEDIR" > /dev/null
 }
 
-PODDIE_DIR=`dirname $_`
-pushd $PODDIE_DIR
-/usr/local/bin/php -f ./poddie.php
+pushd $BASEDIR
+$PHP_BINARY -f ./poddie.php
 popd
