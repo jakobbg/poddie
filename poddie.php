@@ -89,6 +89,8 @@ function log_fetched($podcast_url) {
 function is_podcast_feed_alive($url) {
     $handle = curl_init($url);
     curl_setopt($handle,  CURLOPT_RETURNTRANSFER, TRUE);
+    curl_setopt($handle,  CURLOPT_FOLLOWLOCATION, TRUE);
+    curl_setopt($handle,  CURLOPT_MAXREDIRS, 10);
     $response = curl_exec($handle);
     $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
     curl_close($handle);
