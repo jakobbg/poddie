@@ -67,21 +67,45 @@ if ($downloaded_files_count > 0) echo "Downloaded $downloaded_files_count files 
 
 
 function poddie_setup() {
-
-    verify_requirements();
-
     define("PODDIE_CONFIG_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.config");
     define("PODDIE_FEEDS_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.feeds");
     define("PODDIE_FETCHED_LOGFILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.fetched");
-
     define("PODDIE_ID3TAG_BIN", get_poddie_config("id3tag"));
     define("PODDIE_PODCAST_STORAGE", get_poddie_config("podcast_storage"));
-
     date_default_timezone_set(get_poddie_config("timezone"));
+
+    verify_requirements();
 }
 
+
 function verify_requirements() {
-    if(!extension_loaded('SimpleXML')) poddie_die("ERROR: Poddie requirement: SimpleXML", 1);
+    require_php_extensions();
+    require_binaries();
+}
+
+function require_php_extensions() {
+    foreach(array('SimpleXML') as $module) {
+        if(!phpmodule_exists($module)) {
+            poddie_die("ERROR: Poddie requirement - Missing PHP module: SimpleXML", 1);
+        }
+    }
+}
+
+function phpmodule_exists($module) {
+    return extension_loaded($module);
+}
+
+function require_binaries() {
+    foreach(array(PODDIE_ID3TAG_BIN) as $binary) {
+        if(!command_exist($binary)) {
+            poddie_die("ERROR: Poddie required binary: $binary", 2);
+        }
+    }
+}
+
+function command_exist($cmd) {
+    $return = shell_exec(sprintf("which %s", escapeshellarg($cmd)));
+    return !empty($return);
 }
 
 function poddie_die($msg, $exitcode) {
