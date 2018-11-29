@@ -84,9 +84,9 @@ function verify_requirements() {
 }
 
 function require_php_extensions() {
-    foreach(array('SimpleXML') as $module) {
-        if(!phpmodule_exists($module)) {
-            poddie_die("ERROR: Poddie requirement - Missing PHP module: $module", 1);
+    foreach(array('SimpleXML') as $phpmodule) {
+        if(!phpmodule_exists($phpmodule)) {
+            poddie_die("ERROR: Poddie requirement - Missing PHP module: $phpmodule", 1);
         }
     }
 }
