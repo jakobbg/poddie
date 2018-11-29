@@ -15,14 +15,14 @@ foreach($poddie_config as $poddie_config_line) {
     }
 
     if(!is_valid_poddie_config_line($poddie_config_line)) {
-        echo "Feed config '$poddie_config' at line $poddie_config_line_number is not valid. Skipping.\n";
+        echo "Feed config '$poddie_config' at line $poddie_config_line_number is not valid - skipping.\n";
         continue;
     }
 
     list($podcast_title, $podcast_url, $episodes_to_keep) = explode(';', trim($poddie_config_line));
 
     if(!is_feed_alive($podcast_url)) {
-        echo "$podcast_title ($podcast_url) does not exist. Skipping.\n";
+        echo "$podcast_title ($podcast_url) does not exist - skipping.\n";
         continue;
     }
 
@@ -30,7 +30,7 @@ foreach($poddie_config as $poddie_config_line) {
 
     $podcast_simplexml = simplexml_load_string(file_get_contents(trim($podcast_url)));
     if(!$podcast_simplexml) {
-        echo "$podcast_title ($podcast_url) is not providing valid XML. Skipping.\n";
+        echo "$podcast_title ($podcast_url) is not providing valid XML - skipping.\n";
         continue;
     }
 
@@ -63,7 +63,7 @@ foreach($poddie_config as $poddie_config_line) {
 }
 
 $number_of_podcasts = count($poddie_config);
-echo "Downloaded $downloaded_files_count files from $number_of_podcasts podcast feeds.\n";
+echo "Downloaded $downloaded_files_count files from $number_of_podcasts podcast feeds\n";
 
 
 function poddie_setup() {
