@@ -63,7 +63,7 @@ foreach($poddie_config as $poddie_config_line) {
 }
 
 $number_of_podcasts = count($poddie_config);
-if ($downloaded_files_count > 0) echo "Downloaded $downloaded_files_count files from $number_of_podcasts podcast feeds.\n";
+echo "Downloaded $downloaded_files_count files from $number_of_podcasts podcast feeds.\n";
 
 
 function poddie_setup() {
