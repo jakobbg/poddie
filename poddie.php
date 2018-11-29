@@ -98,7 +98,7 @@ function require_php_extensions() {
 function require_binaries() {
     foreach(array(PODDIE_ID3TAG_BIN) as $binary) {
         if(!command_exist($binary)) {
-            poddie_die("ERROR: Poddie required binary: $binary", 2);
+            poddie_die("ERROR: Poddie requirement: Missing binary: $binary", 2);
         }
     }
 }
