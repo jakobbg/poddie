@@ -3,18 +3,30 @@
 poddie_setup();
 
 $poddie_already_fetched = file_exists(PODDIE_FETCHED_LOGFILE) ? file_get_contents(PODDIE_FETCHED_LOGFILE) : "";
-$downloaded_files_count = 0;
-
+$downloaded_files_count = $poddie_config_line_number = 0;
 $poddie_config = preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", file(PODDIE_FEEDS_FILE));
 
-foreach($poddie_config as $podcast_feed) {
+foreach($poddie_config as $poddie_config_line) {
+    $poddie_config_line_number++;
     $episodes_kept = 0;
-    list($podcast_title, $podcast_url, $episodes_to_keep) = explode(';', trim($podcast_feed));
 
-    if(!is_podcast_feed_alive($podcast_url)) {
+    if(empty(trim($poddie_config_line))) {
+        continue; //silently into the night
+    }
+
+    if(!is_valid_poddie_config_line($poddie_config_line)) {
+        echo "Feed config '$poddie_config' at line $poddie_config_line_number is not valid. Skipping.\n";
+        continue;
+    }
+
+    list($podcast_title, $podcast_url, $episodes_to_keep) = explode(';', trim($poddie_config_line));
+
+    if(!is_feed_alive($podcast_url)) {
         echo "$podcast_title ($podcast_url) does not exist. Skipping.\n";
         continue;
     }
+
+    echo "Processing podcast: $podcast_title ($podcast_url), keeping last $episodes_to_keep episode" . plural($episodes_to_keep). "\n";
 
     $podcast_simplexml = simplexml_load_string(file_get_contents(trim($podcast_url)));
     if(!$podcast_simplexml) {
@@ -86,7 +98,7 @@ function log_fetched($podcast_url) {
     fclose($logfile);
 }
 
-function is_podcast_feed_alive($url) {
+function is_feed_alive($url) {
     $handle = curl_init($url);
     curl_setopt($handle,  CURLOPT_RETURNTRANSFER, TRUE);
     curl_setopt($handle,  CURLOPT_FOLLOWLOCATION, TRUE);
@@ -129,6 +141,15 @@ function sanitize_filename($str) {
     $str = str_replace('..', '.', $str);
     $str = str_replace("  ", " ", $str);
     return $str;
+}
+
+function is_valid_poddie_config_line($str) {
+    return substr_count($str, ';') == 2;
+}
+
+function plural($num) {
+    if(!empty($num) && is_numeric($num) && $num > 1)
+        return 's';
 }
 
 ?>
