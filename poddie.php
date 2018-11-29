@@ -83,16 +83,16 @@ function verify_requirements() {
     require_binaries();
 }
 
+function phpmodule_exists($module) {
+    return extension_loaded($module);
+}
+
 function require_php_extensions() {
     foreach(array('SimpleXML') as $phpmodule) {
         if(!phpmodule_exists($phpmodule)) {
             poddie_die("ERROR: Poddie requirement - Missing PHP module: $phpmodule", 1);
         }
     }
-}
-
-function phpmodule_exists($module) {
-    return extension_loaded($module);
 }
 
 function require_binaries() {
