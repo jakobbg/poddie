@@ -81,7 +81,12 @@ function poddie_setup() {
 }
 
 function verify_requirements() {
-    if(!extension_loaded('SimpleXML')) die("ERROR: Poddie requirement: SimpleXML\n");
+    if(!extension_loaded('SimpleXML')) poddie_die("ERROR: Poddie requirement: SimpleXML", 1);
+}
+
+function poddie_die($msg, $exitcode) {
+    fwrite(STDERR, "$msg\n");
+    exit($exitcode); // A response code other than 0 is a failure
 }
 
 function scan_dir($dir) {
