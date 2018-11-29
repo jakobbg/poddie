@@ -67,14 +67,21 @@ if ($downloaded_files_count > 0) echo "Downloaded $downloaded_files_count files 
 
 
 function poddie_setup() {
+
+    verify_requirements();
+
     define("PODDIE_CONFIG_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.config");
     define("PODDIE_FEEDS_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.feeds");
     define("PODDIE_FETCHED_LOGFILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.fetched");
 
     define("PODDIE_ID3TAG_BIN", get_poddie_config("id3tag"));
     define("PODDIE_PODCAST_STORAGE", get_poddie_config("podcast_storage"));
-    date_default_timezone_set(get_poddie_config("timezone"));
 
+    date_default_timezone_set(get_poddie_config("timezone"));
+}
+
+function verify_requirements() {
+    if(!extension_loaded('SimpleXML')) die("ERROR: Poddie requirement: SimpleXML\n");
 }
 
 function scan_dir($dir) {
