@@ -3,7 +3,7 @@
 poddie_setup();
 
 $poddie_already_fetched = file_exists(PODDIE_FETCHED_LOGFILE) ? file_get_contents(PODDIE_FETCHED_LOGFILE) : "";
-$downloaded_files_count = $poddie_config_line_number = 0;
+$downloaded_files_count = $poddie_config_line_number = $downloaded_files_size = 0;
 $poddie_config = preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", file(PODDIE_FEEDS_FILE));
 
 foreach($poddie_config as $poddie_config_line) {
@@ -39,6 +39,7 @@ foreach($poddie_config as $poddie_config_line) {
         exec("mkdir -p '" . PODDIE_PODCAST_STORAGE . "/$podcast_title'");
     }
 
+
     foreach($podcast_simplexml->channel->item as $item) {
         if(++$episodes_kept >= $episodes_to_keep) break;
         $url = (string) $item->enclosure['url'];
@@ -46,7 +47,7 @@ foreach($poddie_config as $poddie_config_line) {
         $episode_title_filename = date('Y-m-d', strtotime((string) $item->pubDate)) . " - " . sanitize_filename(remove_timestamp((string) $item->title)) . ".$episode_title_filename_extension";
         if($url != '' && strpos($poddie_already_fetched, $url) === false) {
             echo "Fetching '$url' into '" . PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename'\n";
-            download($url, PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename");
+            $downloaded_files_size += download($url, PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename");
             $id3tag = substr($episode_title_filename, 0, strrpos($episode_title_filename, '.'));
             exec(PODDIE_ID3TAG_BIN . " --song='$id3tag' '" . PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename'");
             log_fetched($url);
@@ -63,7 +64,8 @@ foreach($poddie_config as $poddie_config_line) {
 }
 
 $number_of_podcasts = count($poddie_config);
-echo "Downloaded $downloaded_files_count files from $number_of_podcasts podcast feeds\n";
+$human_downloaded_files_size = human_filesize($downloaded_files_size);
+echo "Downloaded $downloaded_files_count files ($human_downloaded_files_size) from $number_of_podcasts podcast feeds.\n";
 
 
 function poddie_setup() {
@@ -165,7 +167,7 @@ function download($file_source, $file_target) {
     fclose($rh);
     fclose($wh);
     // No error
-    return true;
+    return filesize($file_target);
 }
 
 function remove_timestamp($str) {
@@ -186,6 +188,12 @@ function is_valid_poddie_config_line($str) {
 function plural($num) {
     if(!empty($num) && is_numeric($num) && $num > 1)
         return 's';
+}
+
+function human_filesize($bytes, $decimals = 2) {
+    $factor = floor((strlen($bytes) - 1) / 3);
+    if ($factor > 0) $sz = 'KMGT';
+    return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$sz[$factor - 1] . 'B';
 }
 
 ?>
