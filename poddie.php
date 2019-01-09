@@ -38,8 +38,7 @@ foreach($poddie_config as $poddie_config_line) {
         echo "New podcast subscription detected: $podcast_title.\n";
         exec("mkdir -p '" . PODDIE_PODCAST_STORAGE . "/$podcast_title'");
     }
-
-
+    
     foreach($podcast_simplexml->channel->item as $item) {
         if(++$episodes_kept >= $episodes_to_keep) break;
         $url = (string) $item->enclosure['url'];
