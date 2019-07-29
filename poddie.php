@@ -1,7 +1,17 @@
 #!/usr/bin/env php
 <?php
 
+$poddie_verbose = false;
+
 poddie_setup();
+
+$opts = getopt("v");
+foreach (array_keys($opts) as $opt) {
+    switch ($opt) {
+        case 'v':
+            $poddie_verbose = true;
+    }
+}
 
 $poddie_already_fetched = file_exists(PODDIE_FETCHED_LOGFILE) ? file_get_contents(PODDIE_FETCHED_LOGFILE) : "";
 $downloaded_files_count = $poddie_config_line_number = $downloaded_files_size = 0;
@@ -27,7 +37,7 @@ foreach($poddie_config as $poddie_config_line) {
         continue;
     }
 
-    echo "Processing podcast: $podcast_title ($podcast_url), keeping last $episodes_to_keep episode" . plural($episodes_to_keep). "\n";
+    echo is_verbose() ? "Processing podcast: $podcast_title ($podcast_url), keeping last $episodes_to_keep episode" . plural($episodes_to_keep). "\n" : '';
 
     $podcast_simplexml = simplexml_load_string(file_get_contents(trim($podcast_url)));
     if(!$podcast_simplexml) {
@@ -46,7 +56,7 @@ foreach($poddie_config as $poddie_config_line) {
         $episode_title_filename_extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
         $episode_title_filename = date('Y-m-d', strtotime((string) $item->pubDate)) . " - " . sanitize_filename(remove_timestamp((string) $item->title)) . ".$episode_title_filename_extension";
         if($url != '' && strpos($poddie_already_fetched, $url) === false) {
-            echo "Fetching '$url' into '" . PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename'\n";
+            echo "$podcast_title: Fetching '$url' into '" . PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename'\n";
             $downloaded_files_size += download($url, PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename");
             $id3tag = substr($episode_title_filename, 0, strrpos($episode_title_filename, '.'));
             exec(PODDIE_ID3TAG_BIN . " --song='$id3tag' '" . PODDIE_PODCAST_STORAGE . "/$podcast_title/$episode_title_filename'");
@@ -65,8 +75,12 @@ foreach($poddie_config as $poddie_config_line) {
 
 $number_of_podcasts = count($poddie_config);
 $human_downloaded_files_size = human_filesize($downloaded_files_size);
-echo "Downloaded $downloaded_files_count files ($human_downloaded_files_size) from $number_of_podcasts podcast feeds.\n";
 
+
+$output_downloaded = "Downloaded $downloaded_files_count files ($human_downloaded_files_size) from $number_of_podcasts podcast feeds.\n";
+if(is_verbose() || $downloaded_files_count > 0) {
+    echo $output_downloaded;
+}
 
 function poddie_setup() {
     define("PODDIE_CONFIG_FILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.config");
@@ -74,11 +88,11 @@ function poddie_setup() {
     define("PODDIE_FETCHED_LOGFILE", dirname($_SERVER['SCRIPT_FILENAME']) . "/poddie.fetched");
     define("PODDIE_ID3TAG_BIN", get_poddie_config("id3tag"));
     define("PODDIE_PODCAST_STORAGE", get_poddie_config("podcast_storage"));
+    define("PODDIE_VERBOSE", FALSE);
     date_default_timezone_set(get_poddie_config("timezone"));
 
     verify_requirements();
 }
-
 
 function verify_requirements() {
     require_php_extensions();
@@ -155,18 +169,15 @@ function download($file_source, $file_target) {
     $rh = fopen($file_source, 'rb');
     $wh = fopen($file_target, 'wb');
     if ($rh===false || $wh===false) {
-        // error reading or opening file
         return false;
     }
     while (!feof($rh)) {
     if (fwrite($wh, fread($rh, 1024)) === FALSE) {
-        // 'Download error: Cannot write to file ('.$file_target.')';
         return true;
         }
     }
     fclose($rh);
     fclose($wh);
-    // No error
     return filesize($file_target);
 }
 
@@ -194,6 +205,11 @@ function human_filesize($bytes, $decimals = 2) {
     $factor = floor((strlen($bytes) - 1) / 3);
     if ($factor > 0) $sz = 'KMGT';
     return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$sz[$factor - 1] . 'B';
+}
+
+function is_verbose() {
+    global $poddie_verbose;
+    return $poddie_verbose;
 }
 
 ?>
