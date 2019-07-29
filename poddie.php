@@ -77,7 +77,7 @@ $number_of_podcasts = count($poddie_config);
 $human_downloaded_files_size = human_filesize($downloaded_files_size);
 
 
-$output_downloaded = "Downloaded $downloaded_files_count files ($human_downloaded_files_size) from $number_of_podcasts podcast feeds.\n";
+$output_downloaded = "Downloaded $downloaded_files_count file" . plural($downloaded_files_count) . " ($human_downloaded_files_size) from $number_of_podcasts podcast feed" . plural($number_of_podcasts) . ".\n";
 if(is_verbose() || $downloaded_files_count > 0) {
     echo $output_downloaded;
 }
