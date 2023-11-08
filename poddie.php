@@ -47,7 +47,7 @@ foreach($poddie_config as $poddie_config_line) {
 
     if(!file_exists(PODDIE_PODCAST_STORAGE . "/$podcast_title")) {
         echo "New podcast subscription detected: $podcast_title.\n";
-        exec("mkdir -p '" . PODDIE_PODCAST_STORAGE . "/$podcast_title'");
+		mkdir(PODDIE_PODCAST_STORAGE . "/$podcast_title");
     }
     
     foreach($podcast_simplexml->channel->item as $item) {
